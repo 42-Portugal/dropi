@@ -166,7 +166,7 @@ class Api42:
                     reqs.append(
                         thpool.apply_async(
                             req_func,
-                            (req), {})
+                            ((req)), {})
                         )
 
                 resp_dicts = [r.get().json() for r in reqs]
