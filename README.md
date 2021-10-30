@@ -2,7 +2,7 @@
 ## A (small) api connector for api.intra.42.fr/v2
 
 ### What's done:
-- fetch token from api using env variables values (`Token` class)
+- fetch token from api using env variables values (`ApiToken` class)
 - basic requests (get, post, patch, delete) (`Api42` class)
 - `Api42.get()` gets all page of results unless specified by option
 - multithreading
@@ -20,7 +20,7 @@
 - `pip install -r requirements.txt`
 - `source .env` after filling it with your api credentials
 -  `import dropi` in your script (with this repository as a subfolder of your project/working directory)
--  `t = dropi.Token()` to create your api token
+-  `t = dropi.ApiToken()` to create your api token
 -  `api = dropi.Api42(t)` to create your api connector instance
 -  `response = api.get("campus/38/users")` to get all users from lisbon campus for example (don't forget to strip away the api.intra.42.fr/v2 part from the url)
 -  `enjoy` :) 
