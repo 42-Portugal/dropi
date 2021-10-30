@@ -99,7 +99,7 @@ class Api42:
             reqs = []
             for i in range(2, npage + 1):
                 pl = {}
-                pl.update(payload)
+                pl.update(request['payload'])
                 pl['page'] = {'number': i}
                 reqs.append(ApiRequest(endpoint=endpoint, payload=pl))
             res.extend(
