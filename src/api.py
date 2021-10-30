@@ -1,7 +1,7 @@
 import requests
 import time
-import config
-import api_token
+import .config
+import .api_token
 
 from multiprocessing.pool import ThreadPool
 from math import ceil
