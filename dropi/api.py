@@ -101,7 +101,7 @@ class Api42:
                 pl = {}
                 pl.update(request['payload'])
                 pl['page'] = {'number': i}
-                reqs.append(ApiRequest(endpoint=endpoint, payload=pl))
+                reqs.append({'endpoint':endpoint, 'payload': pl})
             res.extend(
                 self.mass_request(
                     "GET",
