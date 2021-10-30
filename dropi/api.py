@@ -165,7 +165,9 @@ class Api42:
                 for req in p:
                     reqs.append(
                         thpool.apply_async(
-                            req_func, (req['endpoint'], req['payload']), {}))
+                            req_func,
+                            (req),
+                            ))
 
                 resp_dicts = [r.get().json() for r in reqs]
                 pres = []
