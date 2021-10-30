@@ -112,8 +112,7 @@ class Api42:
 
     @handler
     def post(self, request: ApiRequest):
-        r = requests.post
-        (f"{config.endpoint}/{request['endpoint']}",
+        r = requests.post(f"{config.endpoint}/{request['endpoint']}",
                           headers=self.headers,
                           json=request['payload'])
         r.raise_for_status()
@@ -121,8 +120,7 @@ class Api42:
 
     @handler
     def delete(self, request: ApiRequest):
-        r = requests.delete
-        (f"{config.endpoint}/{request['endpoint']}",
+        r = requests.delete(f"{config.endpoint}/{request['endpoint']}",
                           headers=self.headers,
                           json=request['payload'])
         r.raise_for_status()
