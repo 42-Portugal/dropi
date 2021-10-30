@@ -29,7 +29,7 @@ class LogLvl(IntEnum):
 
 
 class Api42:
-    def __init__(self, token: api_token.ApiToken,
+    def __init__(self, token: dropi.ApiToken,
             log_lvl: LogLvl = LogLvl.Debug, raises: bool = True):
         self.token = token
         self.log_lvl = log_lvl
