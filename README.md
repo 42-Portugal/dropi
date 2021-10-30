@@ -17,9 +17,9 @@
 - ideas are welcome x) 
 
 ### To use/test it:
-- `pip3 install git+ssh://git@github.com/42-Lisboa/dropi`
+- `pip install git+ssh://git@github.com/42-Lisboa/dropi` or `pip install -r requirements.txt` if you don't want to install dropi through pip
 - `source .env` after filling it with your api credentials
-- `import dropi` in your script (with this repository as a subfolder of your project/working directory)
+- `import dropi` in your script (with this repository as a subfolder of your project/working directory if you didn't install through pip)
 - `t = dropi.ApiToken()` to create your api token
 - `api = dropi.Api42(t)` to create your api connector instance
 - `response = api.get("campus/38/users")` to get all users from lisbon campus for example (don't forget to strip away the api.intra.42.fr/v2 part from the url)
