@@ -19,6 +19,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    packages=setuptools.find_packages(),
+    packages=['dropi'],
+    package_dir={'dropi':'src'},
     python_requires=">=3.9",
 )
