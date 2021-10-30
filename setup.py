@@ -20,6 +20,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=['dropi'],
-    package_dir={'dropi':'src'},
+    package_dir={'':'dropi'},
     python_requires=">=3.9",
 )
