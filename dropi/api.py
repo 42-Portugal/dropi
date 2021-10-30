@@ -9,7 +9,6 @@ from enum import IntEnum
 from . import config, api_token
 
 
-
 class ApiRequest(TypedDict):
     endpoint: str
     payload: dict
@@ -24,13 +23,14 @@ class LogLvl(IntEnum):
 
 
 class Api42:
-    def __init__(self, token: api_token.ApiToken,
-            log_lvl: LogLvl = LogLvl.Debug, raises: bool = True):
+    def __init__(self,
+                 token: api_token.ApiToken,
+                 log_lvl: LogLvl = LogLvl.Debug,
+                 raises: bool = True):
         self.token = token
         self.log_lvl = log_lvl
         self.raises = raises
         self.headers = {"Authorization": f"Bearer {self.token}", }
-
 
     def _log(self, lvl, msg):
         print(f"[dropi] {lvl}: {msg}")
@@ -55,11 +55,9 @@ class Api42:
             return
         self._log("INFO", msg)
 
-
     def refresh_token(self):
         self.token.refresh()
         self.headers = {"Authorization": f"Bearer {self.token}", }
-
 
     def handler(func):
         def _handle(self, *args, **kwargs):
@@ -101,7 +99,7 @@ class Api42:
                 pl = {}
                 pl.update(request['payload'])
                 pl['page'] = {'number': i}
-                reqs.append({'endpoint':request['endpoint'], 'payload': pl})
+                reqs.append({'endpoint': request['endpoint'], 'payload': pl})
             res.extend(
                 self.mass_request(
                     "GET",
@@ -121,23 +119,23 @@ class Api42:
     @handler
     def delete(self, request: ApiRequest):
         r = requests.delete(f"{config.endpoint}/{request['endpoint']}",
-                          headers=self.headers,
-                          json=request['payload'])
+                            headers=self.headers,
+                            json=request['payload'])
         r.raise_for_status()
         return r.json()
 
     @handler
     def patch(self, request: ApiRequest):
         r = requests.patch(f"{config.endpoint}/{request['endpoint']}",
-                          headers=self.headers,
-                          json=request['payload'])
+                           headers=self.headers,
+                           json=request['payload'])
         r.raise_for_status()
         return r.json()
 
     def mass_request(self,
-            req_type: str,
-            requests: list[ApiRequest],
-            multithreaded: bool = True):
+                     req_type: str,
+                     requests: list[ApiRequest],
+                     multithreaded: bool = True):
 
         if req_type == "GET":
             req_func = self._get
@@ -167,7 +165,7 @@ class Api42:
                         thpool.apply_async(
                             req_func,
                             (req,))
-                        )
+                    )
 
                 resp_dicts = [r.get().json() for r in reqs]
                 pres = []
