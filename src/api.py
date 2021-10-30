@@ -1,7 +1,7 @@
 import requests
 import time
-import dropi.config
-import dropi.api_token
+
+from . import config, api_token
 
 from multiprocessing.pool import ThreadPool
 from math import ceil

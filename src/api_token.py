@@ -1,6 +1,6 @@
 import requests
 import time
-import dropi.config
+from . import config
 
 
 class ApiToken:
