@@ -11,7 +11,7 @@
 
 ### TODO:
 - write/generate doc using Sphinx
-- allow to fetch token from creds using `Token.__init__()` params too (add optionnal kwargs)
+- allow to fetch token from creds using `ApiToken.__init__()` params too (add optionnal kwargs)
 - better exceptions wrapping (failed requests, expired token, refresh token needs to be tested, etc)
 - a bit more logs (and more granular control of logs)
 - ideas are welcome x) 
