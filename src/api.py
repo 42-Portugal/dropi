@@ -1,18 +1,13 @@
 import requests
 import time
 
-from . import config, api_token
-
 from multiprocessing.pool import ThreadPool
 from math import ceil
-from typing import Union, TypedDict
+from typing import TypedDict
 from enum import IntEnum
 
+from . import config, api_token
 
-def chunks(lst, n):
-    """Yield successive n-sized chunks from lst."""
-    for i in range(0, len(lst), n):
-        yield lst[i:i + n]
 
 
 class ApiRequest(TypedDict):
@@ -85,16 +80,16 @@ class Api42:
         return _handle
 
     @handler
-    def _get(self, endpoint: str, payload: dict):
-        return requests.get(f"{config.endpoint}/{endpoint}",
+    def _get(self, request: ApiRequest):
+        return requests.get(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
-                            json=payload)
+                            json=request['payload'])
 
-    def get(self, endpoint: str, payload: Union[dict, None] = None,
-            scrap: bool = True, multithreaded: bool = True):
-        if not payload:
-            payload = {}
-        r = self._get(endpoint, payload)
+    def get(self,
+            request: ApiRequest,
+            scrap: bool = True,
+            multithreaded: bool = True):
+        r = self._get(request)
         res = r.json()
 
         if 'x-total' in r.headers and scrap is True:
@@ -116,37 +111,35 @@ class Api42:
         return res
 
     @handler
-    def post(self, endpoint: str, payload: Union[dict, None] = None):
-        if not payload:
-            payload = {}
-        r = requests.post(f"{config.endpoint}/{endpoint}",
+    def post(self, request: ApiRequest):
+        r = requests.post
+        (f"{config.endpoint}/{request['endpoint']}",
                           headers=self.headers,
-                          json=payload)
+                          json=request['payload'])
         r.raise_for_status()
         return r.json()
 
     @handler
-    def delete(self, endpoint: str, payload: Union[dict, None] = None):
-        if not payload:
-            payload = {}
-        r = requests.delete(f"{config.endpoint}/{endpoint}",
-                            headers=self.headers,
-                            json=payload)
+    def delete(self, request: ApiRequest):
+        r = requests.delete
+        (f"{config.endpoint}/{request['endpoint']}",
+                          headers=self.headers,
+                          json=request['payload'])
         r.raise_for_status()
         return r.json()
 
     @handler
-    def patch(self, endpoint: str, payload: Union[dict, None] = None):
-        if not payload:
-            payload = {}
-        r = requests.patch(f"{config.endpoint}/{endpoint}",
-                           headers=self.headers,
-                           json=payload)
+    def patch(self, request: ApiRequest):
+        r = requests.patch(f"{config.endpoint}/{request['endpoint']}",
+                          headers=self.headers,
+                          json=request['payload'])
         r.raise_for_status()
         return r.json()
 
-    def mass_request(self, req_type: str,
-                     requests: list[ApiRequest], multithreaded: bool = True):
+    def mass_request(self,
+            req_type: str,
+            requests: list[ApiRequest],
+            multithreaded: bool = True):
 
         if req_type == "GET":
             req_func = self._get
@@ -160,7 +153,13 @@ class Api42:
             raise Exception(f"Invalid request type '{req_type}'")
 
         res = []
+
         if multithreaded is True:
+            def chunks(lst, n):
+                """Yield successive n-sized chunks from lst."""
+                for i in range(0, len(lst), n):
+                    yield lst[i:i + n]
+
             pools = chunks(requests, config.max_poolsize)
             for p in pools:
                 thpool = ThreadPool(processes=len(p))
