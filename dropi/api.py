@@ -166,8 +166,8 @@ class Api42:
                     reqs.append(
                         thpool.apply_async(
                             req_func,
-                            (req),
-                            ))
+                            (req), {})
+                        )
 
                 resp_dicts = [r.get().json() for r in reqs]
                 pres = []
@@ -182,6 +182,6 @@ class Api42:
 
         else:
             for req in requests:
-                res.extend(req_func(req['endpoint'], req['payload']).json())
+                res.extend(req_func(req).json())
 
         return res
