@@ -5,7 +5,7 @@ from . import config
 
 class ApiToken:
     """A 42 intra api authentication token.
-    
+
     Args:
         uid (str, optional): the `client_id` from 42 app
         secret (str, optional): the `client_secret` from 42 app
@@ -13,7 +13,8 @@ class ApiToken:
     Attributes:
         json (dict): A dictionary containing the token to be provided.
     """
-    def __init__(self, uid: str="", secret: str=""):
+
+    def __init__(self, uid: str = "", secret: str = ""):
         self.__params = config.params.copy()
         if uid and secret:
             self.__params['client_id'] = uid
