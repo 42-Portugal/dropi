@@ -181,7 +181,7 @@ class Api42:
         """
         r = requests.get(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
-                            json=req['payload'])
+                            json=request['payload'])
         res = r.json()
 
         if 'x-total' in r.headers and scrap is True:
