@@ -1,12 +1,31 @@
 import os
 
 token_url = "https://api.intra.42.fr/oauth/token"
+"""The endpoint to request an acces token to 42 intra's api."""
+
 endpoint = "https://api.intra.42.fr/v2"
+"""The base endpoint to 42 intra's api."""
+
 params = {
+    "grant_type": "client_credentials",
     "client_id": os.getenv("UID42"),
     "client_secret": os.getenv("SECRET42"),
-    "grant_type": "client_credentials",
-    "scope": "public projects tig forum profile elearning"
+    "scope": os.getenv("SCOPE42")
 }
+"""The paramaters to be provided to request token.
+
+    :meta hide-value:
+"""
 
 max_poolsize = 30
+"""The maximum poolsize for concurrent request, defaults to ``30``.
+
+    To update it, just set it to the new value.
+
+    .. code-block:: python
+        :linenos:
+
+        import dropi
+        config.dropi.max_poolsize = 42
+        # Do stuff
+"""
