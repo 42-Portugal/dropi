@@ -6,31 +6,42 @@ from . import config
 class ApiToken:
     """A 42 intra api authentication token.
 
+    Can be instanciated without optional args from :mod:`~dropi.config`
+    values, but if one optional arg is supplied, both need to be. Otherwise
+    values from :mod:`~dropi.config` will be used.
+
+    If printed or converted to string, the value of the `access_token` key
+    from the response dict stored in :attr:`~.ApiToken.json` will be printed
+    or returned.
+
     Args:
         uid (str, optional): the `client_id` from 42 app
         secret (str, optional): the `client_secret` from 42 app
 
     Attributes:
-        json (dict): A dictionary containing the token to be provided.
+        json (dict): A dictionary containing the response from the token
+            request.
+
     """
 
     def __init__(self, uid: str = "", secret: str = ""):
-        self.__params = config.params.copy()
-        if uid and secret:
-            self.__params['client_id'] = uid
-            self.__params['client_secret'] = secret
+        self.params = config.params.copy()
+        if uid != "" and secret != "":
+            self.params['client_id'] = uid
+            self.params['client_secret'] = secret
         self.json = self.get()
 
     def get(self):
-        """Gets a new token from 42 intra api.
+        """Gets a new token from 42 intra's api.
 
         Raises:
-            HTTPError: Request has failed
+            HTTPError: Request has failed.
 
         Returns:
-            dict: A dictionary containing the token to be provided.
+            dict: A dictionary containing the 42 intra's api response.
+
         """
-        resp = requests.post(config.token_url, self.__params)
+        resp = requests.post(config.token_url, self.params)
         status = resp.status_code
         resp.raise_for_status()
         return resp.json()
@@ -38,8 +49,11 @@ class ApiToken:
     def refresh(self):
         """Updates the stored token.
 
+        Uses :meth:`~.ApiToken.get` and store result in :attr:`~.ApiToken.json`
+
         Raises:
             HTTPError: Request has failed
+
         """
         self.json = self.get()
 
