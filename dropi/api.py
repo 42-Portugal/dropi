@@ -179,7 +179,7 @@ class Api42:
                 will fetch all pages concurrently (see :meth:`~.mass_request`
                 for more details). Defaults to ``True``
         """
-        r = requests.get(f"{config.endpoint}/{req['endpoint']}",
+        r = requests.get(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
                             json=request['payload'])
         res = r.json()
