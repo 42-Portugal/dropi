@@ -10,10 +10,11 @@
 - "mass requests" (relies on a list of ApiRequest objects to represent requests) (uses multithreading unless specified by option)
 
 ### TODO:
-- write/generate doc using Sphinx
-- allow to fetch token from creds using `ApiToken.__init__()` params too (add optionnal kwargs)
+- ~~write/generate doc using Sphinx~~ (basic settings done, needs more config and prettier output)
+- ~~allow to fetch token from creds using `ApiToken.__init__()` params too (add optionnal kwargs)~~
 - better exceptions wrapping (failed requests, expired token, refresh token needs to be tested, etc)
 - a bit more logs (and more granular control of logs)
+- use params to build url
 - ideas are welcome x) 
 
 ### To use/test it:
