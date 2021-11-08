@@ -22,10 +22,24 @@ class ApiRequest(TypedDict):
 
         tkn = dropi.ApiToken()
         api = dropi.Api42(tkn)
-        #Here req is a correct ApiRequest
+        #Empty payloads are allowed
         req = {'endpoint': 'campus/38/users/', 'payload': {}}
 
-        api.get(req)
+        users = api.get(req)
+        #Will return users of lisbon campus
+
+
+        #Todo:
+        req = {
+            'endpoint': 'campus/38/users/',
+            'payload': {},
+            'params': {
+                'filter': { 'pool_year': [2020, 2021]}
+            }
+        }
+
+        also_users = api.get(req)
+        #Should apply filter
     """
     endpoint: str
     """The request's endpoint, without the ``https://intra.42.fr/v2/`` prefix.
@@ -140,6 +154,7 @@ class Api42:
                     and "payload" not in request \
                     and "endpoint" not in request:
                     raise TypeError("request must be an ApiRequest")
+
                 if self.token.json['expires_in'] <= 10:
                     self._refresh_token()
 
@@ -147,6 +162,7 @@ class Api42:
 
                 resp = func(self, request)
                 resp.raise_for_status()
+                self._debug(f"after request -> {resp.status_code}")
                 return resp.json()
             except requests.exceptions.RequestException as e:
                 self._error(e)
@@ -179,6 +195,12 @@ class Api42:
                 will fetch all pages concurrently (see :meth:`~.mass_request`
                 for more details). Defaults to ``True``
         """
+
+        # For the case of GET requests, we'll need to retrieve the headers
+        # from the response to check for additionnal pages.
+        # Since all Api42 wrapper functions return only the content of
+        # the response as dict, we'll use the requests.get method directly
+        # to know the numbers of pages (if more than one page of result).
         r = requests.get(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
                             json=request['payload'])
@@ -193,7 +215,11 @@ class Api42:
                 pl = {}
                 pl.update(request['payload'])
                 pl['page'] = {'number': i}
-                reqs.append({'endpoint': request['endpoint'], 'payload': pl})
+                reqs.append({
+                        'endpoint': request['endpoint'],
+                        'payload': pl,
+                        'params': request['params']}
+                    )
 
             res.extend(
                 self.mass_request(
@@ -251,6 +277,9 @@ class Api42:
                      multithreaded: bool = True):
         """Runs a list of requests to 42 intra's api.
 
+        If one of  the requests fail, an exception will be raised and
+        requests will stop being sent.
+        
         ``requests`` must be all be of the same ``req_type``.
 
 
