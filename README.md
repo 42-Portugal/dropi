@@ -15,6 +15,7 @@
 - better exceptions wrapping (failed requests, expired token, refresh token needs to be tested, etc)
 - a bit more logs (and more granular control of logs)
 - use params to build url
+- **DRY:** *_get _post _patch* and *_delete* are just basically doing the same thing, we could use requests.request instead
 - ideas are welcome x) 
 
 ### To use/test it:
