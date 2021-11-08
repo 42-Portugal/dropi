@@ -26,3 +26,7 @@
 - `api = dropi.Api42(t)` to create your api connector instance
 - `response = api.get("campus/38/users")` to get all users from lisbon campus for example (don't forget to strip away the api.intra.42.fr/v2 part from the url)
 - `enjoy` :) 
+
+### Doc:
+ - you will need sphinx installed (or python-sphinx on fedora)
+ - just run `build_doc.sh` and visit the link at the end of the script output :)
