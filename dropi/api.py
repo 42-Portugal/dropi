@@ -204,6 +204,7 @@ class Api42:
         r = requests.get(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
                             json=request['payload'])
+        r.raise_for_status()
         res = r.json()
 
         if 'x-total' in r.headers and scrap is True:
