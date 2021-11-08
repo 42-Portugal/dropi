@@ -323,7 +323,7 @@ class Api42:
                             (req,))
                     )
 
-                resp_dicts = [r.get().json() for r in reqs]
+                resp_dicts = [r.get() for r in reqs]
                 pres = []
 
                 for i in range(len(resp_dicts)):
