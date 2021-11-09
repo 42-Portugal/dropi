@@ -231,6 +231,12 @@ class Api42:
 
     @handler
     def _post(self, request: ApiRequest):
+        if "files" in request:
+            return requests.post(f"{config.endpoint}/{request['endpoint']}",
+                          headers=self.headers,
+                          json=request['payload'],
+                          files=request['files'])
+        
         return requests.post(f"{config.endpoint}/{request['endpoint']}",
                           headers=self.headers,
                           json=request['payload'])
@@ -239,9 +245,6 @@ class Api42:
         """Sends a POST request to 42 intra's api.
 
         To send many POST requests at once, see: :meth:`~.mass_request`.
-
-        To do:
-            Support files
         """
         return self._post(request)
 
