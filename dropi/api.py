@@ -29,7 +29,6 @@ class ApiRequest(TypedDict):
         #Will return users of lisbon campus
 
 
-        #Todo:
         req = {
             'endpoint': 'campus/38/users/',
             'payload': {},
@@ -98,7 +97,7 @@ class Api42:
         self.headers = {"Authorization": f"Bearer {self.token}", }
 
     def _log(self, lvl, msg):
-        print(f"[dropi] {lvl}: {msg}")
+        print(f"[dropi - {lvl}]: {msg}")
 
     def _fatal(self, msg):
         if self._log_lvl > LogLvl.Fatal:
@@ -163,7 +162,7 @@ class Api42:
                 resp = func(self, request)
                 resp.raise_for_status()
                 self._debug(f"after request -> {resp.status_code}")
-                return resp.json()
+                return resp.json() if resp.content is not None else {}
             except requests.exceptions.RequestException as e:
                 self._error(e)
                 if self._raises:
@@ -179,10 +178,13 @@ class Api42:
     def _get(self, req: ApiRequest):
         return requests.get(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
-                            json=req['payload']) 
+                            json=req['payload'],
+                            params=req['params']) 
 
     def get(self,
-            request: ApiRequest,
+            url: str,
+            data: dict = {},
+            params: dict = {},
             scrap: bool = True,
             multithreaded: bool = True):
         """Sends a GET request to 42 intra's api.
@@ -201,12 +203,14 @@ class Api42:
         # Since all Api42 wrapper functions return only the content of
         # the response as dict, we'll use the requests.get method directly
         # to know the numbers of pages (if more than one page of result).
-        r = requests.get(f"{config.endpoint}/{request['endpoint']}",
-                            headers=self.headers,
-                            json=request['payload'])
-        r.raise_for_status()
-        res = r.json()
+        r = requests.get(f"https://api.intra.42.fr/v2/{url}",
+                        json=data,
+                        params=params,
+                        headers=self.headers)
 
+        r.raise_for_status()
+
+        res = r.json()
         if 'x-total' in r.headers and scrap is True:
             npage = int(r.headers['x-total']) / int(r.headers['x-per-page'])
             npage = ceil(npage)
@@ -214,11 +218,11 @@ class Api42:
             reqs = []
             for i in range(2, npage + 1):
                 pl = {}
-                pl.update(request['payload'])
+                pl.update(data)
                 pl['page'] = {'number': i}
-                reqs.append({'endpoint': request['endpoint'],
+                reqs.append({'endpoint': url,
                     'payload': pl,
-                    'params': request.get('params', {})
+                    'params': params
                 })
 
             res.extend(
@@ -230,41 +234,45 @@ class Api42:
         return res
 
     @handler
-    def _post(self, request: ApiRequest):
-        if "files" in request:
-            return requests.post(f"{config.endpoint}/{request['endpoint']}",
-                          headers=self.headers,
-                          json=request['payload'],
-                          files=request['files'])
+    def _post(self, req: ApiRequest):
+        if req['files']:
+            return requests.post(f"{config.endpoint}/{req['endpoint']}",
+                            headers=self.headers,
+                            json=req['payload'],
+                            params = req['params'],
+                            files=req['files'])
         
-        return requests.post(f"{config.endpoint}/{request['endpoint']}",
-                          headers=self.headers,
-                          json=request['payload'])
+        return requests.post(f"{config.endpoint}/{req['endpoint']}",
+                            headers=self.headers,
+                            params = req['params'],
+                            json=req['payload'])
     
-    def post(self, request: ApiRequest):
+    def post(self, url: str, data: dict = {}, params: dict = {}, files = None):
         """Sends a POST request to 42 intra's api.
 
         To send many POST requests at once, see: :meth:`~.mass_request`.
         """
-        return self._post(request)
+        return self._post({'endpoint': url, 'payload': data, 'params': params, 'files': files    })
 
     @handler
     def _delete(self, request: ApiRequest):
         return requests.delete(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
+                            params = request['params'],
                             json=request['payload'])
     
-    def delete(self, request: ApiRequest):
+    def delete(self, url: str, data: dict={}, params: dict={}):
         """Sends a DELETE request to 42 intra's api.
 
         To send many DELETE requests at once, see: :meth:`~.mass_request`.
         """
-        return self._delete(request)
+        return self._delete({'endpoint': url, 'payload': data, 'params': params})
 
     @handler
     def _patch(self, request: ApiRequest):
         return requests.patch(f"{config.endpoint}/{request['endpoint']}",
                            headers=self.headers,
+                            params = req['params'],
                            json=request['payload'])
     
     def patch(self, request: ApiRequest):
@@ -272,7 +280,7 @@ class Api42:
 
         To send many PATCH requests at once, see: :meth:`~.mass_request`.
         """
-        return self._patch(request)
+        return self._patch({'endpoint': url, 'payload': data, 'params': params})
 
     def mass_request(self,
                      req_type: str,
@@ -299,11 +307,11 @@ class Api42:
         if req_type == "GET":
             req_func = self._get
         elif req_type == "POST":
-            req_func = self.post
+            req_func = self._post
         elif req_type == "PATCH":
-            req_func = self.patch
+            req_func = self._patch
         elif req_type == "DELETE":
-            req_func = self.delete
+            req_func = self._delete
         else:
             raise Exception(f"Invalid or empty request type '{req_type}'")
 
