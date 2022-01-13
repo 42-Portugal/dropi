@@ -162,7 +162,7 @@ class Api42:
                 resp = func(self, request)
                 resp.raise_for_status()
                 self._debug(f"after request -> {resp.status_code}")
-                return resp.json() if resp.content is not None else {}
+                return resp.json() if resp.content else {}
             except requests.exceptions.RequestException as e:
                 self._error(e)
                 if self._raises:
@@ -272,16 +272,19 @@ class Api42:
     def _patch(self, request: ApiRequest):
         return requests.patch(f"{config.endpoint}/{request['endpoint']}",
                            headers=self.headers,
-                            params = req['params'],
+                           params = request['params'],
                            json=request['payload'])
     
-    def patch(self, request: ApiRequest):
+    def patch(self, url: str, data: dict={}, params: dict={}):
         """Sends a PATCH request to 42 intra's api.
 
         To send many PATCH requests at once, see: :meth:`~.mass_request`.
         """
         return self._patch({'endpoint': url, 'payload': data, 'params': params})
 
+    def put(self, url: str, data: dict={}, params: dict={}):
+        return self._patch({'endpoint': url, 'payload': data, 'params': params})
+ 
     def mass_request(self,
                      req_type: str,
                      requests: list[ApiRequest],
@@ -336,7 +339,7 @@ class Api42:
 
                 resp_dicts = [r.get() for r in reqs]
                 pres = []
-
+                thpool.close()
                 for i in range(len(resp_dicts)):
                     if isinstance(resp_dicts[i], list):
                         pres.extend(resp_dicts[i])
