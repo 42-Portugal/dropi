@@ -6,9 +6,7 @@ import time
 class TestAPI(unittest.TestCase):
 
     def setUp(self):
-        t = dropi.ApiToken()
-        self.api = dropi.Api42(t)
-        time.sleep(1)
+        self.api = dropi.Api42(log_lvl=dropi.config.LogLvl.NoLog)
 
 
     # request is successful if an exception is not thrown
@@ -39,7 +37,6 @@ class TestAPI(unittest.TestCase):
     def test_POST_of_a_feedback_to_an_event(self):
 
         previous_events = self.api.get("events/8703/feedbacks")
-        pp.pprint(previous_events)
 
         self.api.post("events/8703/feedbacks", data={"feedback": {"comment": "thank you, Drop! This was an amazing event! 🥳"}})
 
@@ -86,7 +83,6 @@ class TestAPI(unittest.TestCase):
             feedback = feedbacks[0]['id']
         prev_count = len(feedbacks)
         response = self.api.delete(f"events/8703/feedbacks/{feedback}", data={"id": feedback})
-        time.sleep(0.5)
         feedbacks = self.api.get("events/8703/feedbacks")
         after_count = len(feedbacks)
         self.assertTrue(prev_count - 1 == after_count)
