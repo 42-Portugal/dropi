@@ -7,7 +7,6 @@ import time
 from multiprocessing.pool import ThreadPool
 from math import ceil
 from typing import TypedDict
-from enum import IntEnum
 
 from . import config, api_token
 
@@ -77,7 +76,7 @@ class Api42:
 
     def __init__(self,
                  token: api_token.ApiToken = None,
-                 log_lvl: LogLvl = config.log_lvl,
+                 log_lvl: config.LogLvl = config.log_lvl,
                  raises: bool = True):
         self.token = token if token else api_token.ApiToken()
         self._log_lvl = log_lvl

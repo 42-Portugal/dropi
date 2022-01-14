@@ -1,4 +1,5 @@
 import os
+from enum import IntEnum
 
 token_url = "https://api.intra.42.fr/oauth/token"
 """The endpoint to request an acces token to 42 intra's api."""
