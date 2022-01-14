@@ -29,3 +29,16 @@ max_poolsize = 30
         config.dropi.max_poolsize = 42
         # Do stuff
 """
+
+class LogLvl(IntEnum):
+    """:class:`~.Api42` logging level.
+
+        Priority is ordered by numeric value.
+    """
+    NoLog = 0
+    Info = 10
+    Error = 20
+    Fatal = 30
+    Debug = 40
+
+log_lvl = LogLvl.Debug

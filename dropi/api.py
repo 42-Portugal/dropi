@@ -49,18 +49,6 @@ class ApiRequest(TypedDict):
     """The request's payload. Can be empty"""
 
 
-class LogLvl(IntEnum):
-    """:class:`~.Api42` logging level.
-
-        Priority is ordered by numeric value.
-    """
-    NoLog = 0
-    Info = 10
-    Error = 20
-    Fatal = 30
-    Debug = 40
-
-
 class Api42:
     """An interface to request 42 intra's api.
 
@@ -88,10 +76,10 @@ class Api42:
     """
 
     def __init__(self,
-                 token: api_token.ApiToken,
-                 log_lvl: LogLvl = LogLvl.Debug,
+                 token: api_token.ApiToken = None,
+                 log_lvl: LogLvl = config.log_lvl,
                  raises: bool = True):
-        self.token = token
+        self.token = token if token else api_token.ApiToken()
         self._log_lvl = log_lvl
         self._raises = raises
         self.headers = {"Authorization": f"Bearer {self.token}", }
