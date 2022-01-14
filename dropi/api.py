@@ -17,26 +17,25 @@ class ApiRequest(TypedDict):
     .. code-block:: python
         :linenos:
 
+        # The following code will get all users from campus 38 (lisbon) from the api
+        # and give each one evaluation point using the mass_request method
         import dropi
 
-        tkn = dropi.ApiToken()
-        api = dropi.Api42(tkn)
-        #Empty payloads are allowed
-        req = {'endpoint': 'campus/38/users/', 'payload': {}}
+        api = dropi.Api42() 
+        users = api.get("campus/38/users")
+        
+        # generate a list of ApiRequest dicts for the request:
+        reqs = [{
+                'endpoint': f'users/{u["login"]}/correction_points/add',
+                'payload': {"id": u["login"], "reason": "Staff is testing stuff"},
+                } for u in users]
 
-        users = api.get(req)
-        #Will return users of lisbon campus
+        #This will run run the request concurrently        
+        api.mass_request("POST", reqs)
 
+        #Or if you want them to be ran one by one:
+        api.mass_request("POST", reqs, multithreaded=False)
 
-        req = {
-            'endpoint': 'campus/38/users/',
-            'payload': {},
-            'params': {
-                'filter': { 'pool_year': [2020, 2021]}
-            }
-        }
-
-        also_users = api.get(req)
         #Should apply filter
     """
     endpoint: str
@@ -51,9 +50,7 @@ class ApiRequest(TypedDict):
 class Api42:
     """An interface to request 42 intra's api.
 
-    Provides wrappers for GET, POST, PATCH & DELETE methods. Each wrapper
-    takes a :class:`~.ApiRequest` as argument, and some may accept extra,
-    optional keyword arguments.
+    Provides wrappers for GET, POST, PATCH & DELETE methods.
 
     The :meth:`~.Api42.mass_request` method provides an easy way of running
     a large amount of requests, concurrently or not depending on provided
@@ -87,22 +84,22 @@ class Api42:
         print(f"[dropi - {lvl}]: {msg}")
 
     def _fatal(self, msg):
-        if self._log_lvl > LogLvl.Fatal:
+        if self._log_lvl > config.LogLvl.Fatal:
             return
         self._log("FATAL", msg)
 
     def _error(self, msg):
-        if self._log_lvl > LogLvl.Error:
+        if self._log_lvl > config.LogLvl.Error:
             return
         self._log("ERROR", msg)
 
     def _debug(self, msg):
-        if self._log_lvl > LogLvl.Debug:
+        if self._log_lvl > config.LogLvl.Debug:
             return
         self._log("DEBUG", msg)
 
     def _info(self, msg):
-        if self._log_lvl > LogLvl.Info:
+        if self._log_lvl > config.LogLvl.Info:
             return
         self._log("INFO", msg)
 
@@ -116,8 +113,8 @@ class Api42:
         Each request uses a private method to send request to 42 intra's api.
         This function is a decorator for these private methods.
 
-        It checks for a valid ApiRequest and refreshes the token
-        automatically if needed before running the request, and
+        It checks for a valid ApiRequest (built using the `url', `payload` and `params` arguments)
+        and refreshes the token automatically if needed before running the request, and
         then run the request inside a try/except block. If
         :data:`~.raises` is set to ``False``, it will ignore possible
         ``RequestsException``
@@ -133,6 +130,7 @@ class Api42:
             
             Fix the logic to check if token needs refresh, it's doesn't work
             since token infos doesn't get updated.
+
         """
         def _handle(self, request: ApiRequest):
             try:
@@ -177,7 +175,9 @@ class Api42:
         """Sends a GET request to 42 intra's api.
 
         Args:
-            request (:class:`~.ApiRequest`)
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            data (dict): the request's payload
+            params (dict): the request's parameters
             scrap (bool, optional): If ``True``, will fetch all pages of
                 result. Defaults to ``True``
             multithreaded (bool, optional): If ``True`` and scrap is enabled,
@@ -238,6 +238,12 @@ class Api42:
         """Sends a POST request to 42 intra's api.
 
         To send many POST requests at once, see: :meth:`~.mass_request`.
+        
+        Args:
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            data (dict): the request's payload
+            params (dict): the request's parameters
+            files (os.File): a file to be uploaded
         """
         return self._post({'endpoint': url, 'payload': data, 'params': params, 'files': files    })
 
@@ -252,6 +258,11 @@ class Api42:
         """Sends a DELETE request to 42 intra's api.
 
         To send many DELETE requests at once, see: :meth:`~.mass_request`.
+        
+        Args:
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            data (dict): the request's payload
+            params (dict): the request's parameters
         """
         return self._delete({'endpoint': url, 'payload': data, 'params': params})
 
@@ -266,10 +277,24 @@ class Api42:
         """Sends a PATCH request to 42 intra's api.
 
         To send many PATCH requests at once, see: :meth:`~.mass_request`.
+        
+        Args:
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            data (dict): the request's payload
+            params (dict): the request's parameters
         """
         return self._patch({'endpoint': url, 'payload': data, 'params': params})
 
     def put(self, url: str, data: dict={}, params: dict={}):
+        """Sends a PUT request to 42 intra's api.
+
+        To send many PUT requests at once, see: :meth:`~.mass_request`.
+        
+        Args:
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            data (dict): the request's payload
+            params (dict): the request's parameters
+        """
         return self._patch({'endpoint': url, 'payload': data, 'params': params})
  
     def mass_request(self,
