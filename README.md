@@ -22,7 +22,7 @@
 - `pip install git+ssh://git@github.com/42-Lisboa/dropi`
 - `source .env` after filling it with your api credentials
 - `import dropi` in your script
-- `t = dropi.ApiToken()` to create your api token
+-  ~~`t = dropi.ApiToken()` to create your api token~~ (automatically done by dropi.Api42() now)
 - `api = dropi.Api42(t)` to create your api connector instance
 - `response = api.get("campus/38/users")` to get all users from lisbon campus for example (don't forget to strip away the api.intra.42.fr/v2 part from the url)
 - `enjoy` :) 
