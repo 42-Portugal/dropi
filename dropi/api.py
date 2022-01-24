@@ -159,12 +159,23 @@ class Api42:
                 raise e
         return _handle
 
+    def build_url_from_params(self, params):
+        append = ""
+        for p in ["sort", "filter", "range"]:
+               if p in params:
+                for k, v in params[p].items():
+                    if append:
+                        append += '&'
+                    append += f"{p}[{k}]={v}"
+        if append:
+            return "?" + append
+        return ""
+
     @handler
     def _get(self, req: ApiRequest):
         return requests.get(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
-                            json=req['payload'],
-                            params=req['params']) 
+                            json=req['payload'])
 
     def get(self,
             url: str,
@@ -190,9 +201,9 @@ class Api42:
         # Since all Api42 wrapper functions return only the content of
         # the response as dict, we'll use the requests.get method directly
         # to know the numbers of pages (if more than one page of result).
+        url = url + self.build_url_from_params(params)
         r = requests.get(f"https://api.intra.42.fr/v2/{url}",
                         json=data,
-                        params=params,
                         headers=self.headers)
 
         r.raise_for_status()
@@ -226,12 +237,10 @@ class Api42:
             return requests.post(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
                             json=req['payload'],
-                            params = req['params'],
                             files=req['files'])
         
         return requests.post(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
-                            params = req['params'],
                             json=req['payload'])
     
     def post(self, url: str, data: dict = {}, params: dict = {}, files = None):
@@ -251,7 +260,6 @@ class Api42:
     def _delete(self, request: ApiRequest):
         return requests.delete(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
-                            params = request['params'],
                             json=request['payload'])
     
     def delete(self, url: str, data: dict={}, params: dict={}):
@@ -270,7 +278,6 @@ class Api42:
     def _patch(self, request: ApiRequest):
         return requests.patch(f"{config.endpoint}/{request['endpoint']}",
                            headers=self.headers,
-                           params = request['params'],
                            json=request['payload'])
     
     def patch(self, url: str, data: dict={}, params: dict={}):
