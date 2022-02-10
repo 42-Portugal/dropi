@@ -87,6 +87,38 @@ class TestAPI(unittest.TestCase):
         after_count = len(feedbacks)
         self.assertTrue(prev_count - 1 == after_count)
         
+    def test_can_filter_params_on_request(self):
+        endpoint = 'campus'
+        params = {
+            'filter': {
+                'city': 'Lisboa'
+                }
+            }
+        response = self.api.get(endpoint, data=params)
+        self.assertTrue(len(response) == 1)
+        self.assertTrue(response[0]['city'] == 'Lisboa')
+
+    def test_can_sort_params_on_request(self):
+        endpoint = 'campus'
+        params = {
+            'sort': 'id'
+            }
+            
+        response = self.api.get(endpoint, data=params)
+        self.assertTrue(response[0]['id'] == 1)
+        self.assertTrue(response[1]['id'] == 2)
+
+    def test_can_range_params_on_request(self):
+        endpoint = 'campus'
+        params = {
+            'range': {
+                'users_count': [3000,3500]
+                }
+            }
+            
+        response = self.api.get(endpoint, data=params)
+        self.assertTrue(response[0]['id'] == 1)
+        self.assertTrue(response[1]['id'] == 2)
 
 if __name__ == '__main__':
     unittest.main()
