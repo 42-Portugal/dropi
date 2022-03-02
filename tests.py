@@ -109,14 +109,14 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(response[1]['id'] == 2)
 
     def test_can_range_params_on_request(self):
-        endpoint = 'campus'
+        endpoint = 'campus/38/users'
         params = {
             'range': {
-                'users_count': [3000,3500]
+                'pool_year': [2020,2021]
                 }
             }
             
-        response = self.api.get(endpoint, data=params)
+        response = self.api.get(endpoint,data=params)
         self.assertTrue(response[0]['id'] == 1)
         self.assertTrue(response[1]['id'] == 2)
 
