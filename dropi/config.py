@@ -42,4 +42,4 @@ class LogLvl(IntEnum):
     Fatal = 30
     NoLog = 10000
 
-log_lvl = LogLvl.Debug
+log_lvl = LogLvl.Error
