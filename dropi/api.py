@@ -175,7 +175,8 @@ class Api42:
     def _get(self, req: ApiRequest):
         return requests.get(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
-                            json=req['payload'])
+                            json=req['payload'],
+                            params=req['params'] if 'params' in req else {}) 
 
     def get(self,
             url: str,
@@ -233,7 +234,7 @@ class Api42:
 
     @handler
     def _post(self, req: ApiRequest):
-        if req['files']:
+        if 'files' in req:
             return requests.post(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
                             json=req['payload'],
@@ -254,7 +255,7 @@ class Api42:
             params (dict): the request's parameters
             files (os.File): a file to be uploaded
         """
-        return self._post({'endpoint': url, 'payload': data, 'params': params, 'files': files    })
+        return self._post({'endpoint': url, 'payload': data, 'params': params, 'files': files})
 
     @handler
     def _delete(self, request: ApiRequest):
@@ -350,6 +351,8 @@ class Api42:
                 thpool = ThreadPool(processes=len(p))
                 reqs = []
                 for req in p:
+                    if 'params' not in req:
+                        req['params'] = {}
                     reqs.append(
                         thpool.apply_async(
                             req_func,
