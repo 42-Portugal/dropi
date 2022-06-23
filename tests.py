@@ -116,7 +116,7 @@ class TestAPI(unittest.TestCase):
                 }
             }
 
-        response = self.api.get(endpoint,data=params)
+        response = self.api.get(endpoint,params=params)
         self.assertTrue(response[0]['id'] == 1)
         self.assertTrue(response[1]['id'] == 2)
 
