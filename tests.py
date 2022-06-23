@@ -33,7 +33,7 @@ class TestAPI(unittest.TestCase):
             }
         }
 
-    # drop created event 8703 as a test; 
+    # drop created event 8703 as a test;
     def test_POST_of_a_feedback_to_an_event(self):
 
         previous_events = self.api.get("events/8703/feedbacks")
@@ -86,7 +86,7 @@ class TestAPI(unittest.TestCase):
         feedbacks = self.api.get("events/8703/feedbacks")
         after_count = len(feedbacks)
         self.assertTrue(prev_count - 1 == after_count)
-        
+
     def test_can_filter_params_on_request(self):
         endpoint = 'campus'
         params = {
@@ -103,7 +103,7 @@ class TestAPI(unittest.TestCase):
         params = {
             'sort': 'id'
             }
-            
+
         response = self.api.get(endpoint, data=params)
         self.assertTrue(response[0]['id'] == 1)
         self.assertTrue(response[1]['id'] == 2)
@@ -115,7 +115,7 @@ class TestAPI(unittest.TestCase):
                 'pool_year': [2020,2021]
                 }
             }
-            
+
         response = self.api.get(endpoint,data=params)
         self.assertTrue(response[0]['id'] == 1)
         self.assertTrue(response[1]['id'] == 2)
