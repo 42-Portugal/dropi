@@ -18,8 +18,12 @@ params = {
     :meta hide-value:
 """
 
-max_poolsize = 30
-"""The maximum poolsize for concurrent request, defaults to ``30``.
+max_poolsize = 3
+"""The maximum poolsize for concurrent request, defaults to ``3``.
+
+    In order to garantee that intra doesn't trigger a 429 "Too Many Requests",
+    this variable should be set to one lower than the actual max requests per
+    second of the token being used.
 
     To update it, just set it to the new value.
 

@@ -21,16 +21,16 @@ class ApiRequest(TypedDict):
         # and give each one evaluation point using the mass_request method
         import dropi
 
-        api = dropi.Api42() 
+        api = dropi.Api42()
         users = api.get("campus/38/users")
-        
+
         # generate a list of ApiRequest dicts for the request:
         reqs = [{
                 'endpoint': f'users/{u["login"]}/correction_points/add',
                 'payload': {"id": u["login"], "reason": "Staff is testing stuff"},
                 } for u in users]
 
-        #This will run run the request concurrently        
+        #This will run run the request concurrently
         api.mass_request("POST", reqs)
 
         #Or if you want them to be ran one by one:
@@ -122,12 +122,12 @@ class Api42:
         Raises:
             TypeError: for invalid ApiRequest
             RequestException: if an error occured when sending request
-            
+
 
         To do:
             More granular exceptions handling (eg: ``Timeout``, ``HTTPError``
             or ``ConnectionError`` could be retried, etc).
-            
+
             Fix the logic to check if token needs refresh, it's doesn't work
             since token infos doesn't get updated.
 
@@ -159,24 +159,12 @@ class Api42:
                 raise e
         return _handle
 
-    def build_url_from_params(self, params):
-        append = ""
-        for p in ["sort", "filter", "range"]:
-               if p in params:
-                for k, v in params[p].items():
-                    if append:
-                        append += '&'
-                    append += f"{p}[{k}]={v}"
-        if append:
-            return "?" + append
-        return ""
-
     @handler
     def _get(self, req: ApiRequest):
         return requests.get(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
                             json=req['payload'],
-                            params=req['params'] if 'params' in req else {}) 
+                            params=req['params'] if 'params' in req else {})
 
     def get(self,
             url: str,
@@ -187,7 +175,7 @@ class Api42:
         """Sends a GET request to 42 intra's api.
 
         Args:
-            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
             params (dict): the request's parameters
             scrap (bool, optional): If ``True``, will fetch all pages of
@@ -202,7 +190,12 @@ class Api42:
         # Since all Api42 wrapper functions return only the content of
         # the response as dict, we'll use the requests.get method directly
         # to know the numbers of pages (if more than one page of result).
-        url = url + self.build_url_from_params(params)
+
+        if not 'page' in data:
+            data['page'] = {'size': 100}
+        elif not 'size' in data['page']:
+            data['page']['size'] = 100
+
         r = requests.get(f"https://api.intra.42.fr/v2/{url}",
                         json=data,
                         headers=self.headers)
@@ -218,7 +211,7 @@ class Api42:
             for i in range(2, npage + 1):
                 pl = {}
                 pl.update(data)
-                pl['page'] = {'number': i}
+                pl['page'] = {'number': i, 'size': data['page']['size']}
                 reqs.append({'endpoint': url,
                     'payload': pl,
                     'params': params
@@ -239,18 +232,18 @@ class Api42:
                             headers=self.headers,
                             json=req['payload'],
                             files=req['files'])
-        
+
         return requests.post(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
                             json=req['payload'])
-    
+
     def post(self, url: str, data: dict = {}, params: dict = {}, files = None):
         """Sends a POST request to 42 intra's api.
 
         To send many POST requests at once, see: :meth:`~.mass_request`.
-        
+
         Args:
-            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
             params (dict): the request's parameters
             files (os.File): a file to be uploaded
@@ -262,14 +255,14 @@ class Api42:
         return requests.delete(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
                             json=request['payload'])
-    
+
     def delete(self, url: str, data: dict={}, params: dict={}):
         """Sends a DELETE request to 42 intra's api.
 
         To send many DELETE requests at once, see: :meth:`~.mass_request`.
-        
+
         Args:
-            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
             params (dict): the request's parameters
         """
@@ -280,14 +273,14 @@ class Api42:
         return requests.patch(f"{config.endpoint}/{request['endpoint']}",
                            headers=self.headers,
                            json=request['payload'])
-    
+
     def patch(self, url: str, data: dict={}, params: dict={}):
         """Sends a PATCH request to 42 intra's api.
 
         To send many PATCH requests at once, see: :meth:`~.mass_request`.
-        
+
         Args:
-            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
             params (dict): the request's parameters
         """
@@ -297,24 +290,29 @@ class Api42:
         """Sends a PUT request to 42 intra's api.
 
         To send many PUT requests at once, see: :meth:`~.mass_request`.
-        
+
         Args:
-            url (string): the requested URL, without the api.intra.42.fr/v2 prefix 
+            url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
             params (dict): the request's parameters
         """
         return self._patch({'endpoint': url, 'payload': data, 'params': params})
- 
+
     def mass_request(self,
                      req_type: str,
                      requests: list[ApiRequest],
                      multithreaded: bool = True):
         """Runs a list of requests to 42 intra's api.
 
+        Requests are sent in batchs up to :data:`dropi.config.max_poolsize`. In order
+        to not trigger intra's "Too Many Request" each batch takes at least 1.1
+        seconds to execute. If a batch takes less, then the function executes a
+        sleep with the time remaining.
+
         If one of  the requests fail, an exception will be raised and
         requests will stop being sent.
-        
-        ``requests`` must be all be of the same ``req_type``.
+
+        ``requests`` must all be of the same ``req_type``.
 
 
         Args:
@@ -347,7 +345,18 @@ class Api42:
                     yield lst[i:i + n]
 
             pools = chunks(requests, config.max_poolsize)
+
+            delta_time = 0
+            start_time = 0
+
             for p in pools:
+
+                if start_time > 0:
+                    delta_time = 1.1 - (time.time() - start_time)
+                if delta_time > 0:
+                    time.sleep(delta_time)
+                start_time = time.time()
+
                 thpool = ThreadPool(processes=len(p))
                 reqs = []
                 for req in p:
