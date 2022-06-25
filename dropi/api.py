@@ -159,20 +159,6 @@ class Api42:
                 raise e
         return _handle
 
-    def build_url_from_params(self, params):
-        append = ""
-        if "sort" in params:
-            append += f"sort={params['sort']}"
-        for p in ["filter", "range"]:
-            if p in params:
-                for k, v in params[p].items():
-                    if append:
-                        append += '&'
-                    append += f"{p}[{k}]={v}"
-        if append:
-            return "?" + append
-        return ""
-
     @handler
     def _get(self, req: ApiRequest):
         return requests.get(f"{config.endpoint}/{req['endpoint']}",
@@ -210,7 +196,6 @@ class Api42:
         elif not 'size' in data['page']:
             data['page']['size'] = 100
 
-        url = url + self.build_url_from_params(params)
         r = requests.get(f"https://api.intra.42.fr/v2/{url}",
                         json=data,
                         headers=self.headers)
