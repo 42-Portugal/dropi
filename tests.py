@@ -112,13 +112,13 @@ class TestAPI(unittest.TestCase):
         endpoint = 'campus/38/users'
         params = {
             'range': {
-                'pool_year': [2020,2021]
+                'pool_year': '2020,2021'
                 }
             }
 
-        response = self.api.get(endpoint,params=params)
-        self.assertTrue(response[0]['id'] == 1)
-        self.assertTrue(response[1]['id'] == 2)
+        response = self.api.get(endpoint,data=params)
+        for r in response:
+            self.assertTrue(r['pool_year'] in ['2020','2021'])
 
 if __name__ == '__main__':
     unittest.main()
