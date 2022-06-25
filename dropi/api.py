@@ -204,6 +204,12 @@ class Api42:
         # Since all Api42 wrapper functions return only the content of
         # the response as dict, we'll use the requests.get method directly
         # to know the numbers of pages (if more than one page of result).
+
+        if not 'page' in data:
+            data['page'] = {'size': 100}
+        elif not 'size' in data['page']:
+            data['page']['size'] = 100
+
         url = url + self.build_url_from_params(params)
         r = requests.get(f"https://api.intra.42.fr/v2/{url}",
                         json=data,
@@ -220,7 +226,7 @@ class Api42:
             for i in range(2, npage + 1):
                 pl = {}
                 pl.update(data)
-                pl['page'] = {'number': i}
+                pl['page'] = {'number': i, 'size': data['page']['size']}
                 reqs.append({'endpoint': url,
                     'payload': pl,
                     'params': params
