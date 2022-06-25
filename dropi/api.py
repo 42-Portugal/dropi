@@ -161,8 +161,10 @@ class Api42:
 
     def build_url_from_params(self, params):
         append = ""
-        for p in ["sort", "filter", "range"]:
-               if p in params:
+        if "sort" in params:
+            append += f"sort={params['sort']}"
+        for p in ["filter", "range"]:
+            if p in params:
                 for k, v in params[p].items():
                     if append:
                         append += '&'
