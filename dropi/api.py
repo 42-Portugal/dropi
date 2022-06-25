@@ -347,7 +347,18 @@ class Api42:
                     yield lst[i:i + n]
 
             pools = chunks(requests, config.max_poolsize)
+
+            delta_time = 0
+            start_time = 0
+
             for p in pools:
+
+                if start_time > 0:
+                    delta_time = 1.1 - (time.time() - start_time)
+                if delta_time > 0:
+                    time.sleep(delta_time)
+                start_time = time.time()
+
                 thpool = ThreadPool(processes=len(p))
                 reqs = []
                 for req in p:
