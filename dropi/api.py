@@ -311,10 +311,15 @@ class Api42:
                      multithreaded: bool = True):
         """Runs a list of requests to 42 intra's api.
 
+        Requests are sent in batchs up to :data:`dropi.config.max_poolsize`. In order
+        to not trigger intra's "Too Many Request" each batch takes at least 1.1
+        seconds to execute. If a batch takes less, then the function executes a
+        sleep with the time remaining.
+
         If one of  the requests fail, an exception will be raised and
         requests will stop being sent.
 
-        ``requests`` must be all be of the same ``req_type``.
+        ``requests`` must all be of the same ``req_type``.
 
 
         Args:
