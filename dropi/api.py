@@ -113,7 +113,7 @@ class Api42:
         Each request uses a private method to send request to 42 intra's api.
         This function is a decorator for these private methods.
 
-        It checks for a valid ApiRequest (built using the `url', `payload` and `params` arguments)
+        It checks for a valid ApiRequest (built using the `url' and `payload` arguments)
         and refreshes the token automatically if needed before running the request, and
         then run the request inside a try/except block. If
         :data:`~.raises` is set to ``False``, it will ignore possible
@@ -163,13 +163,11 @@ class Api42:
     def _get(self, req: ApiRequest):
         return requests.get(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
-                            json=req['payload'],
-                            params=req['params'] if 'params' in req else {})
+                            json=req['payload'])
 
     def get(self,
             url: str,
             data: dict = {},
-            params: dict = {},
             scrap: bool = True,
             multithreaded: bool = True):
         """Sends a GET request to 42 intra's api.
@@ -177,7 +175,6 @@ class Api42:
         Args:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
-            params (dict): the request's parameters
             scrap (bool, optional): If ``True``, will fetch all pages of
                 result. Defaults to ``True``
             multithreaded (bool, optional): If ``True`` and scrap is enabled,
@@ -217,7 +214,6 @@ class Api42:
                 pl['page'] = {'number': i, 'size': data['page']['size']}
                 reqs.append({'endpoint': url,
                     'payload': pl,
-                    'params': params
                 })
 
             res.extend(
@@ -240,7 +236,7 @@ class Api42:
                             headers=self.headers,
                             json=req['payload'])
 
-    def post(self, url: str, data: dict = {}, params: dict = {}, files = None):
+    def post(self, url: str, data: dict = {}, files = None):
         """Sends a POST request to 42 intra's api.
 
         To send many POST requests at once, see: :meth:`~.mass_request`.
@@ -248,10 +244,9 @@ class Api42:
         Args:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
-            params (dict): the request's parameters
             files (os.File): a file to be uploaded
         """
-        return self._post({'endpoint': url, 'payload': data, 'params': params, 'files': files})
+        return self._post({'endpoint': url, 'payload': data, 'files': files})
 
     @handler
     def _delete(self, request: ApiRequest):
@@ -259,7 +254,7 @@ class Api42:
                             headers=self.headers,
                             json=request['payload'])
 
-    def delete(self, url: str, data: dict={}, params: dict={}):
+    def delete(self, url: str, data: dict={}):
         """Sends a DELETE request to 42 intra's api.
 
         To send many DELETE requests at once, see: :meth:`~.mass_request`.
@@ -267,9 +262,8 @@ class Api42:
         Args:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
-            params (dict): the request's parameters
         """
-        return self._delete({'endpoint': url, 'payload': data, 'params': params})
+        return self._delete({'endpoint': url, 'payload': data})
 
     @handler
     def _patch(self, request: ApiRequest):
@@ -277,7 +271,7 @@ class Api42:
                            headers=self.headers,
                            json=request['payload'])
 
-    def patch(self, url: str, data: dict={}, params: dict={}):
+    def patch(self, url: str, data: dict={}):
         """Sends a PATCH request to 42 intra's api.
 
         To send many PATCH requests at once, see: :meth:`~.mass_request`.
@@ -285,11 +279,10 @@ class Api42:
         Args:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
-            params (dict): the request's parameters
         """
-        return self._patch({'endpoint': url, 'payload': data, 'params': params})
+        return self._patch({'endpoint': url, 'payload': data})
 
-    def put(self, url: str, data: dict={}, params: dict={}):
+    def put(self, url: str, data: dict={}):
         """Sends a PUT request to 42 intra's api.
 
         To send many PUT requests at once, see: :meth:`~.mass_request`.
@@ -297,9 +290,8 @@ class Api42:
         Args:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
-            params (dict): the request's parameters
         """
-        return self._patch({'endpoint': url, 'payload': data, 'params': params})
+        return self._patch({'endpoint': url, 'payload': data})
 
     def mass_request(self,
                      req_type: str,
@@ -363,8 +355,6 @@ class Api42:
                 thpool = ThreadPool(processes=len(p))
                 reqs = []
                 for req in p:
-                    if 'params' not in req:
-                        req['params'] = {}
                     reqs.append(
                         thpool.apply_async(
                             req_func,

@@ -94,7 +94,7 @@ class TestAPI(unittest.TestCase):
                 'city': 'Lisboa'
                 }
             }
-        response = self.api.get(endpoint, params=params)
+        response = self.api.get(endpoint, data=params)
         self.assertTrue(len(response) == 1)
         self.assertTrue(response[0]['city'] == 'Lisboa')
 
@@ -104,7 +104,7 @@ class TestAPI(unittest.TestCase):
             'sort': 'id'
             }
 
-        response = self.api.get(endpoint, params=params)
+        response = self.api.get(endpoint, data=params)
         self.assertTrue(response[0]['id'] == 1)
         self.assertTrue(response[1]['id'] == 2)
 
