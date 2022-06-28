@@ -139,7 +139,7 @@ class Api42:
                     and "endpoint" not in request:
                     raise TypeError("request must be an ApiRequest")
 
-                if self.token.json['expires_in'] <= 10:
+                if self.token.needs_refresh():
                     self._refresh_token()
 
                 self._debug(f"sending request-> {request}")
@@ -209,6 +209,9 @@ class Api42:
             data['page'] = {'size': 100}
         elif not 'size' in data['page']:
             data['page']['size'] = 100
+
+        if self.token.needs_refresh():
+            self._refresh_token()
 
         url = url + self.build_url_from_params(params)
         r = requests.get(f"https://api.intra.42.fr/v2/{url}",

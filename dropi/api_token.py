@@ -1,5 +1,5 @@
-import requests
 import time
+import requests
 from . import config
 
 
@@ -30,6 +30,15 @@ class ApiToken:
             self.params['client_id'] = uid
             self.params['client_secret'] = secret
         self.json = self.get()
+        self.fetched_at = int(time.time())
+
+    def needs_refresh(self):
+        """Check if the token needs refreshing
+
+        Returns:
+            bool: true if the token's life is less then 2 second, false otherwise
+        """
+        return (self.json['expires_in'] - (int(time.time()) - self.fetched_at)) <= 2
 
     def get(self):
         """Gets a new token from 42 intra's api.
@@ -49,13 +58,18 @@ class ApiToken:
     def refresh(self):
         """Updates the stored token.
 
-        Uses :meth:`~.ApiToken.get` and store result in :attr:`~.ApiToken.json`
+        If needed, sleeps up to 2 seconds to wait for the token to expire on the
+        server. Uses :meth:`~.ApiToken.get` and store result in
+        :attr:`~.ApiToken.json` updating :attr:`~.ApiToken.fetched_at`
 
         Raises:
             HTTPError: Request has failed
-
         """
+        left = self.json['expires_in'] - (time.time() - self.fetched_at)
+        if left > 0 and left <= 2:
+            time.sleep(left)
         self.json = self.get()
+        self.fetched_at = int(time.time())
 
     def __str__(self):
         return str(self.json['access_token'])
