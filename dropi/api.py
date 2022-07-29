@@ -47,7 +47,7 @@ class ApiRequest(TypedDict):
     """The request's payload. Can be empty"""
 
 
-class Api42:
+class Api42(object):
     """An interface to request 42 intra's api.
 
     Provides wrappers for GET, POST, PATCH & DELETE methods.
@@ -76,34 +76,58 @@ class Api42:
                  log_lvl: config.LogLvl = config.log_lvl,
                  raises: bool = True):
         self.token = token if token else api_token.ApiToken()
-        self._log_lvl = log_lvl
-        self._raises = raises
+        self.__log_lvl = log_lvl
+        self.__max_poolsize = config.max_poolsize
+        self.__raises = raises
         self.headers = {"Authorization": f"Bearer {self.token}", }
 
-    def _log(self, lvl, msg):
+    @property
+    def max_poolsize(self):
+        return self.__max_poolsize
+    
+    @max_poolsize.setter
+    def max_poolsize(self, size):
+        if not isinstance(size, int) :
+            raise TypeError("max_poolsize should be an int")
+        elif size < 1 :
+            raise ValueError("max_poolsize should be superior to 1")
+        self.__max_poolsize = size
+    
+    @property
+    def log_lvl(self):
+        return self.__log_lvl
+
+    @log_lvl.setter
+    def log_lvl(self, lvl):
+        lvls = set(i for i in config.LogLvl)
+        if lvl not in lvls:
+            raise ValueError("invalid value for log_lvl")
+        self.__log_lvl = lvl
+
+    def __log(self, lvl, msg):
         print(f"[dropi - {lvl}]: {msg}")
 
-    def _fatal(self, msg):
-        if self._log_lvl > config.LogLvl.Fatal:
+    def fatal(self, msg):
+        if self.log_lvl > config.LogLvl.Fatal:
             return
-        self._log("FATAL", msg)
+        self.__log("FATAL", msg)
 
-    def _error(self, msg):
-        if self._log_lvl > config.LogLvl.Error:
+    def error(self, msg):
+        if self.log_lvl > config.LogLvl.Error:
             return
-        self._log("ERROR", msg)
+        self.__log("ERROR", msg)
 
-    def _debug(self, msg):
-        if self._log_lvl > config.LogLvl.Debug:
+    def debug(self, msg):
+        if self.log_lvl > config.LogLvl.Debug:
             return
-        self._log("DEBUG", msg)
+        self.__log("DEBUG", msg)
 
-    def _info(self, msg):
-        if self._log_lvl > config.LogLvl.Info:
+    def info(self, msg):
+        if self.log_lvl > config.LogLvl.Info:
             return
-        self._log("INFO", msg)
+        self.__log("INFO", msg)
 
-    def _refresh_token(self):
+    def __refresh_token(self):
         self.token.refresh()
         self.headers = {"Authorization": f"Bearer {self.token}", }
 
@@ -140,27 +164,27 @@ class Api42:
                     raise TypeError("request must be an ApiRequest")
 
                 if self.token.needs_refresh():
-                    self._refresh_token()
+                    self.__refresh_token()
 
-                self._debug(f"sending request-> {request}")
+                self.debug(f"sending request: {request}")
 
                 resp = func(self, request)
                 resp.raise_for_status()
-                self._debug(f"after request -> {resp.status_code}")
+                self.debug(f"response: {resp.status_code}")
                 return resp.json() if resp.content else {}
             except requests.exceptions.RequestException as e:
-                self._error(e)
-                if self._raises:
+                self.error(e)
+                if self.__raises:
                     raise e
             except Exception as e:
                 # Always raise others, unexpected exceptions. Including
                 # TypeError from request's dictionary's key check
-                self._error(e)
+                self.error(e)
                 raise e
         return _handle
 
     @handler
-    def _get(self, req: ApiRequest):
+    def __get(self, req: ApiRequest):
         return requests.get(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
                             json=req['payload'])
@@ -194,11 +218,14 @@ class Api42:
             data['page']['size'] = 100
 
         if self.token.needs_refresh():
-            self._refresh_token()
+            self.__refresh_token()
+
+        self.debug(f"sending request: {url}")
 
         r = requests.get(f"https://api.intra.42.fr/v2/{url}",
                         json=data,
                         headers=self.headers)
+        self.debug(f"after request: {r.status_code}")
 
         r.raise_for_status()
 
@@ -225,7 +252,7 @@ class Api42:
         return res
 
     @handler
-    def _post(self, req: ApiRequest):
+    def __post(self, req: ApiRequest):
         if 'files' in req:
             return requests.post(f"{config.endpoint}/{req['endpoint']}",
                             headers=self.headers,
@@ -246,10 +273,10 @@ class Api42:
             data (dict): the request's payload
             files (os.File): a file to be uploaded
         """
-        return self._post({'endpoint': url, 'payload': data, 'files': files})
+        return self.__post({'endpoint': url, 'payload': data, 'files': files})
 
     @handler
-    def _delete(self, request: ApiRequest):
+    def __delete(self, request: ApiRequest):
         return requests.delete(f"{config.endpoint}/{request['endpoint']}",
                             headers=self.headers,
                             json=request['payload'])
@@ -263,10 +290,10 @@ class Api42:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
         """
-        return self._delete({'endpoint': url, 'payload': data})
+        return self.__delete({'endpoint': url, 'payload': data})
 
     @handler
-    def _patch(self, request: ApiRequest):
+    def __patch(self, request: ApiRequest):
         return requests.patch(f"{config.endpoint}/{request['endpoint']}",
                            headers=self.headers,
                            json=request['payload'])
@@ -280,7 +307,7 @@ class Api42:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
         """
-        return self._patch({'endpoint': url, 'payload': data})
+        return self.__patch({'endpoint': url, 'payload': data})
 
     def put(self, url: str, data: dict={}):
         """Sends a PUT request to 42 intra's api.
@@ -291,7 +318,7 @@ class Api42:
             url (string): the requested URL, without the api.intra.42.fr/v2 prefix
             data (dict): the request's payload
         """
-        return self._patch({'endpoint': url, 'payload': data})
+        return self.__patch({'endpoint': url, 'payload': data})
 
     def mass_request(self,
                      req_type: str,
@@ -299,13 +326,16 @@ class Api42:
                      multithreaded: bool = True):
         """Runs a list of requests to 42 intra's api.
 
-        Requests are sent in batchs up to :data:`dropi.config.max_poolsize`. In order
-        to not trigger intra's "Too Many Request" each batch takes at least 1.1
-        seconds to execute. If a batch takes less, then the function executes a
-        sleep with the time remaining.
+        If multithreaded is set to true, requests are sent in batchs up to
+        :data:`dropi.Api42.__max_poolsize`. In order to not trigger intra's 
+        "Too Many Request" each batch takes at least 1.1 seconds to execute.
+        If a batch takes less, then the function executes a sleep with the 
+        time remaining.
 
         If one of  the requests fail, an exception will be raised and
         requests will stop being sent.
+
+        If multithreaded is set to false, the requests will be ran one by one.
 
         ``requests`` must all be of the same ``req_type``.
 
@@ -321,13 +351,13 @@ class Api42:
         """
 
         if req_type == "GET":
-            req_func = self._get
+            req_func = self.__get
         elif req_type == "POST":
-            req_func = self._post
+            req_func = self.__post
         elif req_type == "PATCH":
-            req_func = self._patch
+            req_func = self.__patch
         elif req_type == "DELETE":
-            req_func = self._delete
+            req_func = self.__delete
         else:
             raise Exception(f"Invalid or empty request type '{req_type}'")
 
@@ -339,7 +369,7 @@ class Api42:
                 for i in range(0, len(lst), n):
                     yield lst[i:i + n]
 
-            pools = chunks(requests, config.max_poolsize)
+            pools = chunks(requests, self.max_poolsize)
 
             delta_time = 0
             start_time = 0
