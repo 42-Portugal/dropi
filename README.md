@@ -2,7 +2,7 @@
 
 ## Install ...
 
-clone this repository, then run `pip install -e .`
+`pip install dropi`
 
 ## ... and have fun! 
 
