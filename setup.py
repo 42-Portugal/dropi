@@ -9,9 +9,6 @@ with pathlib.Path('requirements.txt').open() as requirements_txt:
         in pkg_resources.parse_requirements(requirements_txt)
     ]
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
-
 setuptools.setup(
     name="dropi",
     version="0.42",
@@ -29,7 +26,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=['dropi'],
-    package_dir={'dropi': 'src/dropi'},
     python_requires=">=3.10",
     install_requires=install_requires
 )
